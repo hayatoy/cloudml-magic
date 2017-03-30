@@ -1,6 +1,8 @@
 # cloudml-magic
 cloudml-magic is a Jupyter Notebook Magics for interactively working with [Google Cloud Machine Learning Engine](https://cloud.google.com/ml-engine/).
 
+![diagram](readme_diagram.png)
+
 # Prerequisites
 Before you begin, prepare Google Cloud Platform project and enable billing.
 
