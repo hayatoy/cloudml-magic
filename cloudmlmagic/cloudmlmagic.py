@@ -9,6 +9,7 @@ import time
 import argparse
 from oauth2client.client import GoogleCredentials
 from googleapiclient import discovery
+import tempfile
 
 
 @magics_class
@@ -48,20 +49,20 @@ class MLMagics(Magics):
 
         self.job_id = 'mlmagic__%d' % time.time()
 
-        if not os.path.exists('/tmp/%s/trainer' % self.job_id):
-            os.makedirs('/tmp/%s/trainer' % self.job_id)
+        self.tmpdir = tempfile.gettempdir() + '/' + self.job_id
+        if not os.path.exists('%s/trainer' % self.tmpdir):
+            os.makedirs('%s/trainer' % self.tmpdir)
 
     @cell_magic
     def ml_code(self, line, cell):
-        "store code to deploy"
+        """Store code to deploy."""
         self._store.append(cell + '\n')
         self.shell.run_cell(cell)
         return
 
     @cell_magic
     def ml_run(self, line, cell):
-        "%ml_run cloud"
-
+        """Run a training job."""
         runoncloud = line == 'cloud'
 
         self._store.append(cell + '\n')
@@ -74,22 +75,20 @@ class MLMagics(Magics):
             raise BaseException('Run a code block including model definition')
             return
 
-        tmp_path = '/tmp/%s' % self.job_id
-
-        with open(tmp_path + '/trainer/__init__.py', "w") as f:
+        with open(self.tmpdir + '/trainer/__init__.py', "w") as f:
             f.write("")
-        with open(tmp_path + '/trainer/task.py', "w") as f:
+        with open(self.tmpdir + '/trainer/task.py', "w") as f:
             for r in self._store:
                 f.write(r)
 
-        with open(tmp_path + '/setup.py', "w") as f:
+        with open(self.tmpdir + '/setup.py', "w") as f:
             f.write("from setuptools import setup\n"
                     "if __name__ == '__main__':\n"
                     "    setup(name='trainer', packages=['trainer'])\n")
 
-        gzfilepath = tmp_path + '/dist/trainer-0.0.0.tar.gz'
+        gzfilepath = self.tmpdir + '/dist/trainer-0.0.0.tar.gz'
         gsfilepath = 'gs://%s/%s.tar.gz' % (self.settings.bucket, self.job_id)
-        subprocess.call(['python', 'setup.py', 'sdist'], cwd=tmp_path)
+        subprocess.call(['python', 'setup.py', 'sdist'], cwd=self.tmpdir)
         subprocess.call(['gsutil', 'cp', gzfilepath, gsfilepath])
         job_req = self.ml.projects().jobs().create(
             parent=self.settings.projectId,
