@@ -93,7 +93,7 @@ class MLMagics(Magics):
         job_req = self.ml.projects().jobs().create(
             parent=self.settings.projectId,
             body={'jobId': self.job_id,
-                  'trainingInput': {'scaleTier': 'BASIC',
+                  'trainingInput': {'scaleTier': self.settings.scaleTier,
                                     # 'masterType': 'standard_gpu',
                                     # 'workerType': 'standard_gpu',
                                     'packageUris': [gsfilepath],
