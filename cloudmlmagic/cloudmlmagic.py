@@ -25,13 +25,15 @@ class MLMagics(Magics):
          -projectId PROJECTID
          -bucket BUCKET
          -region us-central1
-         -scaleTier BASIC"""
+         -scaleTier BASIC
+         -runtimeVersion 1.0"""
 
         parser = argparse.ArgumentParser()
         parser.add_argument('-projectId', required=True)
         parser.add_argument('-bucket', required=True)
         parser.add_argument('-region', default='us-central1')
         parser.add_argument('-scaleTier', default='BASIC')
+        parser.add_argument('-runtimeVersion', default='1.0')
 
         settings = parser.parse_args(line.split())
 
@@ -98,7 +100,8 @@ class MLMagics(Magics):
                                     # 'workerType': 'standard_gpu',
                                     'packageUris': [gsfilepath],
                                     'pythonModule': 'trainer.task',
-                                    'region': self.settings.region
+                                    'region': self.settings.region,
+                                    'runtimeVersion': self.settings.runtimeVersion
                                     }
                   }
         )
