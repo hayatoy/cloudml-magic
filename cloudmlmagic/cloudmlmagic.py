@@ -10,7 +10,7 @@ import argparse
 from oauth2client.client import GoogleCredentials
 from googleapiclient import discovery
 import tempfile
-
+import codecs
 
 @magics_class
 class MLMagics(Magics):
@@ -77,13 +77,13 @@ class MLMagics(Magics):
             raise BaseException('Run a code block including model definition')
             return
 
-        with open(self.tmpdir + '/trainer/__init__.py', "w") as f:
+        with codecs.open(self.tmpdir + '/trainer/__init__.py', "w", 'utf-8') as f:
             f.write("")
-        with open(self.tmpdir + '/trainer/task.py', "w") as f:
+        with codecs.open(self.tmpdir + '/trainer/task.py', "w", 'utf-8') as f:
             for r in self._store:
                 f.write(r)
 
-        with open(self.tmpdir + '/setup.py', "w") as f:
+        with codecs.open(self.tmpdir + '/setup.py', "w", 'utf-8') as f:
             f.write("from setuptools import setup\n"
                     "if __name__ == '__main__':\n"
                     "    setup(name='trainer', packages=['trainer'])\n")
