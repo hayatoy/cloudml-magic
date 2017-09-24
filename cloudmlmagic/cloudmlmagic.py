@@ -2,7 +2,7 @@
 """Jupyter Notebook Magic for Google Cloud Machine Learning Engine.
 """
 from __future__ import print_function
-from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic)
+from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic, line_cell_magic)
 import os
 import subprocess
 import time
@@ -19,8 +19,8 @@ class MLMagics(Magics):
         self._store = []
         shell.user_ns['__mystore'] = self._store
 
-    @line_magic
-    def ml_init(self, line):
+    @line_cell_magic
+    def ml_init(self, line, cell=None):
         """%ml_init
          -projectId PROJECTID
          -bucket BUCKET
@@ -42,6 +42,21 @@ class MLMagics(Magics):
 
         self.settings = settings
 
+
+        self.ex_settings = {}
+
+        if cell==None:
+            ex_settings = None
+        else:
+            ex_settings = eval(cell)
+
+        if ex_settings != None:
+            if type(ex_settings) == dict:
+                if 'install_requires' in ex_settings:
+                    if not type(ex_settings['install_requires'])==list:
+                        raise Exception('Invalid format')
+                self.ex_settings = ex_settings
+        
         # Get application default credentials
         # (possible only if the gcloud tool is configured on your machine)
         self.credentials = GoogleCredentials.get_application_default()
@@ -83,10 +98,13 @@ class MLMagics(Magics):
             for r in self._store:
                 f.write(r)
 
+        requires = ",".join(["'{}'".format(s) for s in self.ex_settings.get('install_requires','')])
         with codecs.open(self.tmpdir + '/setup.py', "w", 'utf-8') as f:
             f.write("from setuptools import setup\n"
                     "if __name__ == '__main__':\n"
-                    "    setup(name='trainer', packages=['trainer'])\n")
+                    "    setup(name='trainer',\n"
+                    "          packages=['trainer'],\n"
+                    "          install_requires=[{}])\n".format(requires))
 
         gzfilepath = self.tmpdir + '/dist/trainer-0.0.0.tar.gz'
         gsfilepath = 'gs://%s/%s.tar.gz' % (self.settings.bucket, self.job_id)
