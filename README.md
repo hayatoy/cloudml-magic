@@ -35,7 +35,7 @@ This magic initializes your cloud ml job request. Do NOT forget to initialize be
 Example:
 
 ```py
-in [2]: %ml_init -projectId PROJECTID -bucket BUCKET -region us-central1 -scaleTier BASIC --runtimeVersion 1.2
+in [2]: %ml_init -projectId PROJECTID -bucket BUCKET -region us-central1 -scaleTier BASIC -runtimeVersion 1.2
 ```
 
 ### Install external libraries
