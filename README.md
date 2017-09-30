@@ -1,10 +1,11 @@
 # cloudml-magic
 cloudml-magic is a Jupyter Notebook Magics for interactively working with [Google Cloud Machine Learning Engine](https://cloud.google.com/ml-engine/).
+Your Tensorflow or Keras code on Notebook will run on ML Engine, just by running cells.
 
 ![diagram](readme_diagram.png)
 
 # Prerequisites
-Before you begin, prepare Google Cloud Platform project and enable billing.
+Before you begin, prepare [Google Cloud Platform](https://cloud.google.com/) project, enable billing and install [Google Cloud SDK](https://cloud.google.com/sdk/downloads).
 
 Also this magics use Application Default Credentials.
 To activate the credentials, enter
@@ -34,7 +35,14 @@ This magic initializes your cloud ml job request. Do NOT forget to initialize be
 Example:
 
 ```py
-in [2]: %ml_init -projectId PROJECTID -bucket BUCKET -region us-central1 -scaleTier BASIC
+in [2]: %ml_init -projectId PROJECTID -bucket BUCKET -region us-central1 -scaleTier BASIC --runtimeVersion 1.2
+```
+
+### Install external libraries
+If you want to run codes with external libraries like Keras, h5py, add following dict below the `%ml_init` magic.
+
+```
+{'install_requires': ['keras', 'h5py', 'Pillow']}
 ```
 
 ## %ml_code
