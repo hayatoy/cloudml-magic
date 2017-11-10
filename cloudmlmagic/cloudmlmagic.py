@@ -125,6 +125,43 @@ class MLMagics(Magics):
         )
         response = job_req.execute()
         print(response)
+        
+        
+        from google.cloud import logging as gcloud_log
+        from google.cloud.logging import ASCENDING
+        from datetime import datetime
+        import pytz
+        import time
+        import sys
+
+        # Instantiates a client
+        client = gcloud_log.Client()
+
+        FILTER = 'resource.labels.job_id:' + response['jobId'] + ' AND timestamp > "{0:%Y-%m-%dT%H:%M:%S.%f}Z"'
+
+        dt = datetime.utcfromtimestamp(0).replace(tzinfo=pytz.utc)
+        is_running = True
+        while is_running:
+            for entry in client.list_entries(filter_=FILTER.format(dt), order_by=ASCENDING):  # API call(s)
+                if dt < entry.timestamp.astimezone(pytz.utc):
+                    if type(entry.payload)==dict:
+                        msg = entry.payload.get('message')
+                    else:
+                        msg = entry.payload
+
+                    if entry.severity in ['ERROR', 'CRITICAL']:
+                        stout = sys.stderr
+                    else:
+                        stout = sys.stdout
+
+                    stout.write("({0:%H:%M:%S}): {1}\n".format(entry.timestamp, msg))
+                    stout.flush()
+
+                    dt = entry.timestamp
+            if msg.startswith(('Job completed', 'Job failed')):
+                is_running = False
+            else:
+                time.sleep(1)
         return
 
 
